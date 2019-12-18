@@ -38,12 +38,14 @@
   },
   "devDependencies": {
     "babel-cli": "^6",
-    "babel-preset-es2015": "^6",
+    "babel-preset-es2017": "^6",
     "coveralls": "^2",
-    "eslint": "^3",
-    "eslint-config-standard": "^5",
+    "eslint": "^4.19.1",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-import": "^2.19.1",
+    "eslint-plugin-node": "^10.0.0",
     "eslint-plugin-promise": "^2",
-    "eslint-plugin-standard": "^2",
+    "eslint-plugin-standard": "^4",
     "istanbul": "^0.4",
     "mocha": "^3",
     "should": "^10",
@@ -51,7 +53,7 @@
   },
   "babel": {
     "presets": [
-      "es2015"
+      "es2017"
     ]
   }
 }
