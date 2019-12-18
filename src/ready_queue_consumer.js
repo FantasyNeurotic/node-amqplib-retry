@@ -13,7 +13,7 @@ class ReadyQueueConsumer {
         .try(() => {
           const targetQueueName = msg.properties.headers._targetQueue
           const properties = msg.properties.headers._originalProperties
-          return self.channel.sendToQueue(targetQueueName, new Buffer(msg.content), properties)
+          return self.channel.sendToQueue(targetQueueName, Buffer.from(msg.content), properties)
         })
         .then(() => self.channel.ack(msg))
         .catch((err) => {

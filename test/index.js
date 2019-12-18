@@ -36,7 +36,7 @@ describe('amqplib-retry', () => {
         })
         return channel.consume(ENTRY_QUEUE_NAME, retryHandler, { consumerTag: CONSUMER_TAG })
       })
-      .then(() => channel.sendToQueue(ENTRY_QUEUE_NAME, new Buffer('abc')))
+      .then(() => channel.sendToQueue(ENTRY_QUEUE_NAME, Buffer.from('abc')))
 
   before(() =>
     Promise

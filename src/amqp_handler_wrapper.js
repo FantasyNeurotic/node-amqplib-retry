@@ -12,7 +12,7 @@ const getDefaultDelay = (attempts) => {
   return delay * 1000
 }
 
-module.exports = function (channel, clientQueueName, failureQueueName, clientHandler, delayFunction, initializer) {
+module.exports = function (channel, clientQueueName, failureQueueName, clientHandler, delayFunction, initializer, postProcess) {
   const errorHandler = (msg) => {
     if (!initializer.isInitialized) {
       // Delay in 1 MS to let the queues/exchange/bindings initialize
@@ -29,7 +29,7 @@ module.exports = function (channel, clientQueueName, failureQueueName, clientHan
     const expiration = (delayFunction || getDefaultDelay)(msg.properties.headers._retryCount)
 
     if (expiration < 1) {
-      return channel.sendToQueue(failureQueueName, new Buffer(msg.content), msg.properties)
+      return channel.sendToQueue(failureQueueName, Buffer.from(msg.content), msg.properties)
     }
 
     const properties = {
@@ -44,31 +44,33 @@ module.exports = function (channel, clientQueueName, failureQueueName, clientHan
       expiration: expiration.toString()
     })
 
-    return channel.publish('', config.delayQueueName, new Buffer(msg.content), properties)
+    return channel.publish('', config.delayQueueName, Buffer.from(msg.content), properties)
   }
 
-  const handlerWrapper = (msg) =>
-    Promise
-      .try(() => clientHandler(msg))
-      .catch((err) => {
-        // Something went wrong. Let's handle this message.
-        // Adding the string 'error' to support papertrail error filters.
-        console.error('Error: AMQP retry handler caught the following error: ', err)
-        return Promise
-          .try(() => errorHandler(msg))
-          .catch((err) => {
-            // Something went wrong while trying to process the erroneous message.
-            // Sending nack so the client can try to process it again.
-            channel.nack(msg)
-            throw err
-          })
-      })
-      .then(() =>
-        // We ack it for the user. Either way if the message has been processed successfully or
-        // not, the message should be out of the original queue, therefore - acked.
-        channel.ack(msg)
-      )
+  const handlerWrapper = async (msg) => {
+    try {
+      await clientHandler(msg)
+    } catch (err) {
+      // Something went wrong. Let's handle this message.
+      // Adding the string 'error' to support papertrail error filters.
+      console.error('Error: AMQP retry handler caught the following error: ', err)
+      try {
+        await errorHandler(msg)
+      } catch (err) {
+        // Something went wrong while trying to process the erroneous message.
+        // Sending nack so the client can try to process it again.
+        channel.nack(msg)
+        throw err
+      }
+      // We ack it for the user. Either way if the message has been processed successfully or
+      // not, the message should be out of the original queue, therefore - acked.
+      if (postProcess) {
+        await postProcess(err, msg)
+        return
+      }
+    }
+    channel.ack(msg)
+  }
 
   return handlerWrapper
 }
-

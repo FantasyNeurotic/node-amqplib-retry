@@ -1,6 +1,6 @@
 {
   "name": "amqplib-retry",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "description": "Retry failed attempts to consume a message, with increasing delays between each attempt.",
   "author": "Lanetix <engineering@lanetix.com> (https://github.com/lanetix/)",
   "keywords": [
@@ -13,6 +13,9 @@
   "homepage": "https://github.com/lanetix/node-amqplib-retry/",
   "bugs": "https://github.com/lanetix/node-amqplib-retry/issues",
   "repository": "git://github.com/lanetix/node-amqplib-retry.git",
+  "publishConfig": {
+    "registry": "http://192.168.1.206:11001/repository/npm-hosted/"
+  },
   "licenses": [
     {
       "type": "MIT",
